@@ -15,6 +15,8 @@
         return hora < 19 ? "Buenas tardes" : "Buenas noches";
     }
 %>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="u" value="${sessionScope.usuarioSesion}"/>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -30,7 +32,7 @@
     <main class="contenido">
         <header class="cabecera">
             <div>
-                <h1><%= saludo() %></h1>
+                <h1><%= saludo() %>, <c:out value="${u.usuario}"/></h1>
                 <p class="subtitulo">
                     <%= LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy",
                             new Locale("es", "CO"))) %>
@@ -39,16 +41,30 @@
         </header>
 
         <section class="modulos">
-            <a class="modulo" href="${pageContext.request.contextPath}/pacientes">
+            <a class="modulo" href="${ctx}/citas?fecha=<%= LocalDate.now() %>">
+                <i class="fa-regular fa-calendar-check"></i>
+                <h2>Agenda de hoy</h2>
+                <p>Ver las citas del día y registrar si fueron atendidas.</p>
+            </a>
+            <a class="modulo" href="${ctx}/pacientes">
                 <i class="fa-solid fa-user-group"></i>
                 <h2>Pacientes</h2>
                 <p>Registrar, buscar y actualizar los datos de las pacientes.</p>
             </a>
-            <a class="modulo" href="${pageContext.request.contextPath}/pacientes?accion=nuevo">
-                <i class="fa-solid fa-user-plus"></i>
-                <h2>Nueva paciente</h2>
-                <p>Abrir directamente el formulario de registro.</p>
-            </a>
+            <c:if test="${u.puedeAgendar}">
+                <a class="modulo" href="${ctx}/citas?accion=nuevo">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <h2>Programar cita</h2>
+                    <p>Asignar paciente, médico, fecha y hora.</p>
+                </a>
+            </c:if>
+            <c:if test="${u.administrador}">
+                <a class="modulo" href="${ctx}/usuarios">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <h2>Usuarios</h2>
+                    <p>Crear cuentas, asignar roles y desactivar accesos.</p>
+                </a>
+            </c:if>
             <div class="modulo pendiente">
                 <i class="fa-solid fa-microscope"></i>
                 <h2>Colposcopias</h2>

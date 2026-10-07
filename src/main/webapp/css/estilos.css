@@ -37,6 +37,8 @@ a { color: var(--morado); }
 .menu {
     width: 240px;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
     background: linear-gradient(180deg, var(--morado) 0%, #4A1270 100%);
     color: #fff;
     padding: 24px 14px;
@@ -47,7 +49,7 @@ a { color: var(--morado); }
     margin: 0 8px 28px;
 }
 .marca small { font-size: 10px; font-weight: 500; }
-.logo { position: relative; width: 34px; height: 34px; }
+.logo { position: relative; width: 34px; height: 34px; flex-shrink: 0; }
 .logo i { position: absolute; border-radius: 50% 50% 50% 10%; }
 .logo i:nth-child(1) { width: 18px; height: 22px; background: var(--turquesa); left: 6px; top: 0; transform: rotate(-20deg); }
 .logo i:nth-child(2) { width: 20px; height: 20px; background: var(--fucsia); left: 2px; top: 13px; }
@@ -63,6 +65,28 @@ a { color: var(--morado); }
 .menu nav a.activo { background: var(--fucsia); font-weight: 600; }
 .menu nav i { width: 18px; text-align: center; }
 .menu nav .pendiente { opacity: .45; cursor: not-allowed; }
+
+/* Usuario de la sesión, al pie del menú */
+.sesion {
+    margin-top: auto;
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, .18);
+}
+.sesion-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--turquesa); font-weight: 700;
+}
+.sesion-datos { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.25; }
+.sesion-datos strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sesion-datos small { font-size: 12px; opacity: .75; }
+.sesion form { margin: 0; }
+.sesion-salir {
+    width: 34px; height: 34px; border-radius: 8px; border: 0; cursor: pointer;
+    background: rgba(255, 255, 255, .12); color: #fff; font-size: 14px;
+}
+.sesion-salir:hover { background: var(--fucsia); }
 
 /* ---------- Contenido ---------- */
 .contenido { flex: 1; padding: 32px 40px; min-width: 0; }
@@ -83,16 +107,18 @@ h1 { margin: 0; color: var(--morado); font-size: 26px; font-weight: 600; }
 
 /* ---------- Botones ---------- */
 .btn {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     padding: 10px 20px; border-radius: 8px;
     font: 600 14px "Poppins", sans-serif;
     text-decoration: none; cursor: pointer; border: 2px solid transparent;
 }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
 .btn-primario { background: var(--fucsia); color: #fff; }
-.btn-primario:hover { background: #D90F7C; }
+.btn-primario:hover:not(:disabled) { background: #D90F7C; }
 .btn-secundario { background: var(--turquesa); color: #fff; }
 .btn-contorno { border-color: var(--fucsia); color: var(--fucsia); background: #fff; }
 .btn-texto { color: var(--texto-suave); padding-inline: 8px; }
+.btn-bloque { width: 100%; margin-top: 8px; }
 
 /* ---------- Alertas ---------- */
 .alerta {
@@ -118,7 +144,7 @@ h1 { margin: 0; color: var(--morado); font-size: 26px; font-weight: 600; }
     text-align: left; padding: 12px; font-weight: 600; color: var(--morado);
     border-bottom: 2px solid var(--borde); white-space: nowrap;
 }
-.tabla td { padding: 12px; border-bottom: 1px solid var(--borde); }
+.tabla td { padding: 12px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
 .tabla tbody tr:hover { background: #FBF7FD; }
 .sigla {
     display: inline-block; min-width: 34px; text-align: center;
@@ -133,9 +159,34 @@ h1 { margin: 0; color: var(--morado); font-size: 26px; font-weight: 600; }
 }
 .icono-editar { color: var(--turquesa); }
 .icono-eliminar { color: var(--error); }
+.icono-atender { color: var(--exito); }
+.icono-estado { color: var(--naranja); }
 .icono:hover { background: var(--gris-claro); }
 .vacio { text-align: center; color: var(--texto-suave); padding: 40px 12px; }
 .pie-tabla { margin: 14px 0 0; font-size: 13px; color: var(--texto-suave); }
+.sin-salto { white-space: nowrap; }
+.dato-secundario { display: block; font-size: 12px; color: var(--texto-suave); }
+.nota { font-size: 12px; color: var(--texto-suave); margin-left: 4px; }
+.fila-inactiva td { color: var(--texto-suave); }
+/* La franja fucsia marca las citas de hoy dentro de la agenda */
+.fila-hoy td:first-child { box-shadow: inset 4px 0 0 var(--fucsia); font-weight: 600; }
+
+/* Etiquetas de estado (citas y usuarios) */
+.estado {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.estado-programada { background: #E0F4F6; color: #00707C; }
+.estado-atendida { background: #E6F6EF; color: var(--exito); }
+.estado-cancelada { background: #FDECEC; color: var(--error); }
+.estado-no-asistio { background: #FFF0E6; color: #B4520F; }
+
+/* Filtros de la agenda */
+.filtros { align-items: flex-end; gap: 14px 16px; }
+.filtros .campo { min-width: 150px; }
+.filtros .campo-ancho { flex: 1; min-width: 220px; max-width: 360px; }
+.filtros-botones { display: flex; gap: 6px; align-items: center; }
+.resumen-agenda { margin: 0 0 8px; font-size: 13px; font-weight: 500; color: var(--morado); }
 
 /* ---------- Formulario ---------- */
 .titulo-seccion { font-size: 16px; color: var(--morado); margin: 0 0 18px; }
@@ -147,6 +198,9 @@ h1 { margin: 0; color: var(--morado); font-size: 26px; font-weight: 600; }
     border: 1px solid var(--borde); border-radius: 8px; background: #fff;
 }
 .campo input:focus, .campo select:focus { border-color: var(--morado-claro); outline: 2px solid #E9D5F2; }
+.ayuda { font-size: 12px; color: var(--texto-suave); }
+.casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 10px 0; }
+.casilla input { width: 18px; height: 18px; accent-color: var(--fucsia); }
 .acciones-formulario {
     display: flex; justify-content: flex-end; gap: 12px;
     margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--borde);
@@ -164,6 +218,28 @@ h1 { margin: 0; color: var(--morado); font-size: 26px; font-weight: 600; }
 .modulo p { margin: 0; font-size: 13px; color: var(--texto-suave); }
 .modulo.pendiente { opacity: .55; border-top-color: var(--naranja); }
 
+/* ---------- Inicio de sesión ---------- */
+.pagina-login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+.login {
+    display: grid; grid-template-columns: 1fr 1fr;
+    width: 100%; max-width: 860px; min-height: 460px;
+    background: #fff; border: 1px solid var(--borde); border-radius: 16px; overflow: hidden;
+}
+.login-marca {
+    background: linear-gradient(160deg, var(--morado) 0%, #4A1270 100%);
+    color: #fff; padding: 48px 40px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+}
+.login-marca h1 { color: #fff; font-size: 30px; line-height: 1.15; margin: 8px 0 10px; }
+.login-marca p { margin: 0; opacity: .85; font-size: 14px; }
+.login-ips { font-weight: 700; letter-spacing: .02em; }
+.login-ips small { font-size: 10px; font-weight: 500; }
+.logo-grande { transform: scale(1.9); transform-origin: left top; margin-bottom: auto; }
+.login-formulario { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+.login-formulario h2 { margin: 0 0 4px; color: var(--morado); font-size: 22px; }
+.login-formulario form { display: flex; flex-direction: column; gap: 16px; }
+.login-formulario .alerta { margin-bottom: 0; }
+
 /* ---------- Error ---------- */
 .pagina-error { display: grid; place-items: center; min-height: 100vh; padding: 20px; }
 .caja-error { max-width: 480px; text-align: center; }
@@ -176,6 +252,14 @@ h1 { margin: 0; color: var(--morado); font-size: 26px; font-weight: 600; }
     .menu { width: 100%; padding: 16px; }
     .menu nav { flex-direction: row; overflow-x: auto; }
     .marca { margin-bottom: 12px; }
+    .sesion { margin-top: 12px; }
     .contenido { padding: 20px; }
     .rejilla { grid-template-columns: 1fr; }
+    .login { grid-template-columns: 1fr; }
+    .login-marca { padding: 28px; min-height: 180px; }
+    .logo-grande { transform: scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; }
 }
