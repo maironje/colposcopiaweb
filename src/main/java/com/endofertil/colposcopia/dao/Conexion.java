@@ -1,19 +1,25 @@
 package com.endofertil.colposcopia.dao;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * Fábrica de conexiones JDBC hacia la base de datos {@code bd_colposcopia}.
- * Ajuste USUARIO y CLAVE según su instalación local de MySQL.
+ *
+ * <p>Los datos de conexión se leen de {@code src/main/resources/db.properties},
+ * que está excluido de Git para no publicar la contraseña. Use
+ * {@code db.properties.ejemplo} como plantilla.</p>
  */
 public final class Conexion {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/bd_colposcopia"
-            + "?useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true";
-    private static final String USUARIO = "root";
-    private static final String CLAVE = "sistemas";
+    private static final String ARCHIVO = "/db.properties";
+    private static final String URL;
+    private static final String USUARIO;
+    private static final String CLAVE;
 
     static {
         // En aplicaciones web el driver debe registrarse explícitamente
@@ -22,6 +28,20 @@ public final class Conexion {
         } catch (ClassNotFoundException e) {
             throw new ExceptionInInitializerError("No se encontró el driver de MySQL: " + e.getMessage());
         }
+
+        Properties datos = new Properties();
+        try (InputStream entrada = Conexion.class.getResourceAsStream(ARCHIVO)) {
+            if (entrada == null) {
+                throw new ExceptionInInitializerError("Falta el archivo db.properties en src/main/resources. "
+                        + "Cópielo desde db.properties.ejemplo y escriba su contraseña de MySQL.");
+            }
+            datos.load(entrada);
+        } catch (IOException e) {
+            throw new ExceptionInInitializerError("No se pudo leer db.properties: " + e.getMessage());
+        }
+        URL = datos.getProperty("db.url");
+        USUARIO = datos.getProperty("db.usuario");
+        CLAVE = datos.getProperty("db.clave", "");
     }
 
     private Conexion() {

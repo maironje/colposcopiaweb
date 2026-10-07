@@ -1,0 +1,5 @@
+# Copie este archivo como db.properties (en la misma carpeta) y escriba su contraseña de MySQL.
+# db.properties está en .gitignore para que la contraseña nunca se suba a GitHub.
+db.url=jdbc:mysql://localhost:3306/bd_colposcopia?useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true
+db.usuario=root
+db.clave=

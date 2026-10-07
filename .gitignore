@@ -12,3 +12,9 @@ nbactions.xml
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Contraseña local de MySQL (usar db.properties.ejemplo como plantilla)
+src/main/resources/db.properties
+
+# Notas personales
+ruta del repositorio githup.txt
