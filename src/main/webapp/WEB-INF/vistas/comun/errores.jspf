@@ -1,0 +1,14 @@
+<%-- Lista de errores de validación que el servlet deja en el atributo "errores" --%>
+<c:if test="${not empty errores}">
+    <div class="alerta alerta-error" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div>
+            <strong>Revise los siguientes datos:</strong>
+            <ul>
+                <c:forEach var="error" items="${errores}">
+                    <li><c:out value="${error}"/></li>
+                </c:forEach>
+            </ul>
+        </div>
+    </div>
+</c:if>
