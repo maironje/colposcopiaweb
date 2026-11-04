@@ -16,7 +16,8 @@ import javax.servlet.http.HttpServletResponse;
  * Protege todas las páginas del sistema.
  *
  * <ul>
- *   <li>Sin sesión iniciada solo se permite el inicio de sesión y los estilos.</li>
+ *   <li>Sin sesión iniciada solo se permite el inicio de sesión, los estilos y los servicios
+ *       web {@code /api/login} y {@code /api/registro}.</li>
  *   <li>El módulo de usuarios ({@code /usuarios}) es exclusivo del rol Administrador.</li>
  *   <li>Las páginas protegidas no se guardan en caché, así el botón "Atrás"
  *       no muestra datos después de cerrar sesión.</li>
@@ -55,6 +56,8 @@ public class AutenticacionFiltro implements Filter {
 
     /** Recursos que se pueden ver sin iniciar sesión. */
     private boolean esPublica(String ruta) {
-        return ruta.equals("/login") || ruta.startsWith("/css/") || ruta.equals("/favicon.ico");
+        return ruta.equals("/login") || ruta.startsWith("/css/") || ruta.equals("/favicon.ico")
+                // Servicios web públicos de registro e inicio de sesión (responden JSON)
+                || ruta.equals("/api/login") || ruta.equals("/api/registro");
     }
 }
