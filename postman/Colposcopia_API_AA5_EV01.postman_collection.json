@@ -1,0 +1,451 @@
+{
+  "info": {
+    "name": "Colposcopia API - AA5-EV01 Registro e inicio de sesión",
+    "description": "Servicio web de registro e inicio de sesión del Software de Gestión de Colposcopia (I.P.S. Endofertil).\nAntes de ejecutar: MySQL activo, script sql/02_usuarios_y_citas.sql aplicado y la aplicación corriendo en Tomcat.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Registro",
+      "item": [
+        {
+          "name": "01 Registro válido (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registro"
+              ]
+            },
+            "description": "Registra una cuenta nueva. Queda con rol Auxiliar e inactiva hasta que un administrador la active.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{usuarioNuevo}}\",\n  \"clave\": \"Clave2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Genera un usuario distinto en cada ejecución para que el registro siempre sea nuevo",
+                  "pm.collectionVariables.set(\"usuarioNuevo\", \"aprendiz\" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Usuario registrado correctamente. La cuenta quedará habilitada cuando un administrador la active.\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Usuario registrado correctamente. La cuenta quedará habilitada cuando un administrador la active.\"); });",
+                  "pm.test(\"La cuenta queda inactiva y con rol Auxiliar\", function () {",
+                  "    const d = pm.response.json().datos;",
+                  "    pm.expect(d.activo).to.eql(false);",
+                  "    pm.expect(d.rol).to.eql(\"Auxiliar\");",
+                  "});",
+                  "pm.test(\"No devuelve la contraseña\", function () { pm.expect(pm.response.text()).to.not.include(\"Clave2026\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Registro con usuario existente (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registro"
+              ]
+            },
+            "description": "Repite el usuario de la petición 01.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{usuarioNuevo}}\",\n  \"clave\": \"Clave2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 409\", function () { pm.response.to.have.status(409); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Error en el registro\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Error en el registro\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Registro con datos inválidos (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "registro"
+              ]
+            },
+            "description": "Usuario de 3 caracteres y contraseña débil.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"ana\",\n  \"clave\": \"123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Error en el registro\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Error en el registro\"); });",
+                  "pm.test(\"Explica cada error\", function () { pm.expect(pm.response.json().errores.length).to.be.above(1); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inicio de sesión",
+      "item": [
+        {
+          "name": "04 Login correcto (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "Usa una cuenta activa. Cambie usuarioPrueba y clavePrueba en las variables de la colección.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{usuarioPrueba}}\",\n  \"clave\": \"{{clavePrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Autenticación satisfactoria\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Autenticación satisfactoria\"); });",
+                  "pm.test(\"Devuelve el usuario y su rol\", function () {",
+                  "    pm.expect(pm.response.json().datos).to.have.property(\"rol\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Login con contraseña incorrecta (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{usuarioPrueba}}\",\n  \"clave\": \"ClaveErrada99\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Error en la autenticación\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Error en la autenticación\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Login con usuario inexistente (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"no.existe\",\n  \"clave\": \"Clave2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Error en la autenticación\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Error en la autenticación\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 Login de cuenta recién registrada (401 inactiva)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "La cuenta creada en la petición 01 aún no ha sido activada por el administrador.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{usuarioNuevo}}\",\n  \"clave\": \"Clave2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Error en la autenticación\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Error en la autenticación\"); });",
+                  "pm.test(\"Indica que la cuenta está inactiva\", function () {",
+                  "    pm.expect(pm.response.json().errores[0]).to.include(\"inactiva\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Login sin campos (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{ }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Solicitud inválida\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Solicitud inválida\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Login por GET no permitido (405)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código HTTP 405\", function () { pm.response.to.have.status(405); });",
+                  "pm.test(\"Responde JSON\", function () { pm.response.to.be.json; });",
+                  "pm.test(\"Mensaje: Método no permitido\", function () { pm.expect(pm.response.json().mensaje).to.eql(\"Método no permitido\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/colposcopiaweb"
+    },
+    {
+      "key": "usuarioPrueba",
+      "value": "auxiliar"
+    },
+    {
+      "key": "clavePrueba",
+      "value": "Auxiliar2026"
+    },
+    {
+      "key": "usuarioNuevo",
+      "value": ""
+    }
+  ]
+}
