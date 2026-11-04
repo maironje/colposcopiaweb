@@ -1,8 +1,7 @@
 package com.endofertil.colposcopia.controlador;
 
-import com.endofertil.colposcopia.dao.UsuarioDAO;
-import com.endofertil.colposcopia.modelo.Usuario;
-import com.endofertil.colposcopia.util.SeguridadClave;
+import com.endofertil.colposcopia.servicio.AutenticacionServicio;
+import com.endofertil.colposcopia.servicio.AutenticacionServicio.ResultadoLogin;
 import com.endofertil.colposcopia.util.Sesion;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +17,7 @@ import javax.servlet.http.HttpSession;
 
 /**
  * Inicio de sesión.
- * GET muestra el formulario; POST valida usuario y contraseña contra la tabla {@code usuario}.
+ * GET muestra el formulario; POST valida usuario y contraseña con {@link AutenticacionServicio}.
  */
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
@@ -29,7 +28,7 @@ public class LoginServlet extends HttpServlet {
     /** Mismo mensaje para usuario inexistente y clave errada: no revela qué cuentas existen. */
     private static final String ERROR_CREDENCIALES = "Usuario o contraseña incorrectos.";
 
-    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private final transient AutenticacionServicio autenticacion = new AutenticacionServicio();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -54,20 +53,15 @@ public class LoginServlet extends HttpServlet {
         }
 
         try {
-            Usuario usuario = usuarioDAO.buscarPorUsuario(nombre);
-            if (usuario == null || !SeguridadClave.verificar(clave, usuario.getPasswordHash())) {
-                mostrarError(req, resp, nombre, ERROR_CREDENCIALES);
-                return;
-            }
-            if (!usuario.isActivo()) {
+            // La regla de autenticación vive en AutenticacionServicio (la comparte el servicio web)
+            ResultadoLogin resultado = autenticacion.autenticar(nombre, clave);
+            if (resultado.getEstado() == AutenticacionServicio.EstadoLogin.CUENTA_INACTIVA) {
                 mostrarError(req, resp, nombre, "Su cuenta está inactiva. Comuníquese con el administrador.");
                 return;
             }
-
-            // Migración: si la contraseña estaba en texto plano, se guarda cifrada desde ya
-            if (!SeguridadClave.esHash(usuario.getPasswordHash())) {
-                usuarioDAO.cambiarClave(usuario.getIdUsuario(), SeguridadClave.generarHash(clave));
-                LOG.info("Contraseña del usuario " + usuario.getUsuario() + " migrada a PBKDF2.");
+            if (!resultado.isExitoso()) {
+                mostrarError(req, resp, nombre, ERROR_CREDENCIALES);
+                return;
             }
 
             // Se descarta la sesión anterior y se crea una nueva (evita fijación de sesión)
@@ -75,7 +69,7 @@ public class LoginServlet extends HttpServlet {
             if (anterior != null) {
                 anterior.invalidate();
             }
-            req.getSession(true).setAttribute(Sesion.ATRIBUTO_USUARIO, usuario.sinClave());
+            req.getSession(true).setAttribute(Sesion.ATRIBUTO_USUARIO, resultado.getUsuario());
             resp.sendRedirect(req.getContextPath() + "/index.jsp");
         } catch (SQLException e) {
             LOG.log(Level.SEVERE, "Error de base de datos al iniciar sesión", e);
