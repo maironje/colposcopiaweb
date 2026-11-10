@@ -14,7 +14,7 @@ Aplicación web en Java (servlets + JSP) sobre Apache Tomcat 9 y MySQL 8.
 
 ## Puesta en marcha
 
-1. En MySQL Workbench ejecutar `sql/primer_script_bd_colposcopia.sql`, `sql/datos_prueba.sql` y `sql/02_usuarios_y_citas.sql`.
+1. En MySQL Workbench ejecutar `sql/bd_colposcopia.sql` (estructura y datos) y luego `sql/02_usuarios_y_citas.sql` (usuarios de prueba y citas).
 2. Copiar `src/main/resources/db.properties.ejemplo` como `db.properties` y escribir la contraseña de MySQL.
 3. Abrir en NetBeans, **Clean and Build** y **Run** con Apache Tomcat 9.
 4. Abrir `http://localhost:8080/colposcopiaweb/`.
